@@ -8,10 +8,30 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Deploy to Render
         env:
           deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          curl "$deploy_url"
+          # Trigger Render deployment
+          curl -X POST "$deploy_url"
+
+      - name: Wait for deployment to complete
+        run: |
+          # Wait for Render to finish deploying (adjust sleep time as needed)
+          sleep 120
+
+      - name: Verify deployment
+        env:
+          DEPLOYED_URL: "https://your-render-app.onrender.com"
+        run: |
+          # Check if the application is up and running
+          curl -I "$DEPLOYED_URL"
+
+          # Test the Stage 2 endpoint
+          curl -I "$DEPLOYED_URL/api/v1/books/1"
+
+          # Optional: Test with an invalid book ID to confirm 404 response
+          curl -I "$DEPLOYED_URL/api/v1/books/999"
